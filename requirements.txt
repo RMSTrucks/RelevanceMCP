@@ -1,6 +1,6 @@
-# Updated dependency versions – compatible with modern Railway build images
-fastapi==0.111.0
-uvicorn==0.30.0
-requests==2.32.3
-python-dotenv==1.0.1
-pydantic==2.7.1
+# Dependency versions tested together on Python 3.12 / FastAPI
+fastapi==0.110.3        # FastAPI pinned to stable release
+uvicorn==0.29.0         # Matches FastAPI compatibility matrix
+requests==2.32.3        # Latest stable
+python-dotenv==1.0.1    # Latest stable
+pydantic==2.6.4         # Compatible with FastAPI 0.110.x

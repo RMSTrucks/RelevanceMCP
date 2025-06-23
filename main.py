@@ -1,11 +1,13 @@
 import os
 import logging
 import requests
+import contextlib
 from fastapi import FastAPI, Request, Response, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import base64
 import uvicorn
-from fastapi.middleware.cors import CORSMiddleware
+from typing import AsyncGenerator
 
 # Configure logging
 logging.basicConfig(
@@ -30,8 +32,33 @@ else:
 RELEVANCE_API_BASE_URL = os.getenv("RELEVANCE_API_BASE_URL", "https://api.relevanceai.com/v1")
 logger.info("Using Relevance AI base URL: %s", RELEVANCE_API_BASE_URL)
 
-# Initialize FastAPI app
+# Detect PORT once so we can log it and also use it in __main__
+PORT = int(os.getenv("PORT", 8000))
+logger.info("Server will listen on port: %s", PORT)
+
+# Initialize FastAPI app with lifespan context manager
 app = FastAPI(title="Relevance AI MCP Server")
+
+# Define lifespan context manager for startup/shutdown events
+@contextlib.asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    # Startup event code
+    logger.info("=========================================================")
+    logger.info("🚀 Relevance AI MCP Server STARTUP")
+    logger.info("Listening on: 0.0.0.0:%s", PORT)
+    logger.info("Tools registered: %s", ", ".join(TOOLS.keys()))
+    logger.info("API key present: %s", "yes" if RELEVANCE_API_KEY else "no")
+    logger.info("Base URL: %s", RELEVANCE_API_BASE_URL)
+    logger.info("CORS Origins: %s", origins)
+    logger.info("=========================================================")
+    
+    yield  # Server is running
+    
+    # Shutdown event code
+    logger.info("Relevance AI MCP Server shutting down")
+
+# Attach lifespan to app
+app.router.lifespan_context = lifespan
 
 # --------------------------------------------------------------------------- #
 #                                CORS SETUP                                   #
@@ -398,27 +425,6 @@ async def list_tools():
         "tools": list(TOOLS.keys()),
         "tool_info": tool_info
     }
-
-# --------------------------------------------------------------------------- #
-#                         START-UP / PORT HANDLING                            #
-# --------------------------------------------------------------------------- #
-
-# Detect PORT once so we can log it and also use it in __main__
-PORT = int(os.getenv("PORT", 8000))
-logger.info("Server will listen on port: %s", PORT)
-
-# Emit a clear log line when FastAPI finishes booting
-@app.on_event("startup")
-async def startup_event() -> None:
-    # Summarise key environment details for easier debugging on Railway/Render
-    logger.info("=========================================================")
-    logger.info("🚀 Relevance AI MCP Server STARTUP")
-    logger.info("Listening on: 0.0.0.0:%s", PORT)
-    logger.info("Tools registered: %s", ", ".join(TOOLS.keys()))
-    logger.info("API key present: %s", "yes" if RELEVANCE_API_KEY else "no")
-    logger.info("Base URL: %s", RELEVANCE_API_BASE_URL)
-    logger.info("CORS Origins: %s", origins)
-    logger.info("=========================================================")
 
 if __name__ == "__main__":
     # Local / manual run
