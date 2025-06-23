@@ -28,6 +28,7 @@ else:
 
 # Relevance AI API base URL
 RELEVANCE_API_BASE_URL = os.getenv("RELEVANCE_API_BASE_URL", "https://api.relevanceai.com/v1")
+logger.info("Using Relevance AI base URL: %s", RELEVANCE_API_BASE_URL)
 
 # Initialize FastAPI app
 app = FastAPI(title="Relevance AI MCP Server")
@@ -38,6 +39,7 @@ app = FastAPI(title="Relevance AI MCP Server")
 # Allow calls from browsers / other dashboards, etc.
 origins_env = os.getenv("CORS_ORIGINS")  # comma-separated list or empty
 origins = [o.strip() for o in origins_env.split(",")] if origins_env else ["*"]
+logger.info("CORS allowed origins: %s", origins)
 
 app.add_middleware(
     CORSMiddleware,
@@ -403,15 +405,20 @@ async def list_tools():
 
 # Detect PORT once so we can log it and also use it in __main__
 PORT = int(os.getenv("PORT", 8000))
+logger.info("Server will listen on port: %s", PORT)
 
 # Emit a clear log line when FastAPI finishes booting
 @app.on_event("startup")
 async def startup_event() -> None:
-    logger.info(
-        "🚀 Relevance AI MCP Server started – listening on port %s. Tools: %s",
-        PORT,
-        ", ".join(TOOLS.keys()),
-    )
+    # Summarise key environment details for easier debugging on Railway/Render
+    logger.info("=========================================================")
+    logger.info("🚀 Relevance AI MCP Server STARTUP")
+    logger.info("Listening on: 0.0.0.0:%s", PORT)
+    logger.info("Tools registered: %s", ", ".join(TOOLS.keys()))
+    logger.info("API key present: %s", "yes" if RELEVANCE_API_KEY else "no")
+    logger.info("Base URL: %s", RELEVANCE_API_BASE_URL)
+    logger.info("CORS Origins: %s", origins)
+    logger.info("=========================================================")
 
 if __name__ == "__main__":
     # Local / manual run

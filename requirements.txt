@@ -1,7 +1,6 @@
-# Minimal dependencies – FastAPI 0.68.0 and Pydantic 1.8.2 are known to
-# work together without the ForwardRef issue on all supported Python versions.
-fastapi==0.68.0
-uvicorn==0.22.0
-requests==2.28.2
-python-dotenv==1.0.0
-pydantic==1.8.2
+# Updated dependency versions – compatible with modern Railway build images
+fastapi==0.111.0
+uvicorn==0.30.0
+requests==2.32.3
+python-dotenv==1.0.1
+pydantic==2.7.1
